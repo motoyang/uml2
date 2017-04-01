@@ -3,8 +3,67 @@
 
 namespace uml {
 
+/*
+UML结构，也就是总览
+
+UmlStructure
+    BuildingBlocks，基本UML建模元素、关系和图
+        Things，建模元素本身
+            StructuralThing，UML模型中的名词，如类、接口、协作、用例、活动类、组件、节点
+                Class
+                Interface
+                Collatoration
+                UseCase
+                ActiveClass
+                Component
+                Node
+                （还有其他变体，如Actor、信号、实用程序、进程、线程、应用、文档、文件、库、页、表）
+
+            BeavioralThing，UML模型的动词，如交互、状态机
+                Interaction
+                StateMachine
+
+            GroupingThing，包，它用于把语义上相关的建模元素分组为内聚的单元
+                Package （变体有框架、模型、子系统等）
+
+            Annotational，注解，它附加到模型以捕获特殊信息，同黄色便笺很相像
+                （note是一个依附于一个元素或一组元素之上，对它们进行约束或解释等简单符号）
+
+        Relationships，把物件联系在一起，关系说明两个或多个物件时如何语义相关的
+            Dependency （变体有精化、跟踪、包含和延伸）
+            Association
+            Generalization
+            Realization
+
+        Diagrams，UML模型的图，它们展现物件的集合，“讲述关于软件系统的故事”，是我们可视化系统将做什么（分析级图）或者系统如何做（设计级图）的方法
+            ClassDiagram
+            ObjectDiagram
+            UseCaseDiagram
+            InteractionDiagram
+            SequenceDiagram
+            StatechartDiagram
+            ActivityDiagram
+            ComponentDiagram
+            DeploymentDiagram
+
+    CommonMechanisms，达到特定目标的公共UML方法
+        Specifications
+        Adornments
+        CommonDivisions
+        ExtensibilityMechanisms
+
+    Architecture，系统架构的UML视图
+        UseCaseView
+        LogicView
+        ProcessView
+        ImplementationView
+        DeploymentView
+
+*/
+
 // 可见性通过在属性或方法名称前增加特定的符号表示。公共的（+）私有的的（-）受保护的（#）包内的（~）
-enum class AccessableType {
+
+enum class VisibilityType {
     Private = 0,
     Protected = 1,
     Public = 2,
@@ -87,7 +146,7 @@ struct Interface: public Entity {
     // 操作特征完整语法: [可见性] 操作名 [([方向] 参数名 ':' 参数类型 ['=' 默认值])] [':' 返回类型] [{特征串}]
     // 不能重写的操作与属性一样使用特征串中增加 leaf 表示
     struct Operation {
-        AccessableType accesable;
+        VisibilityType accesable;
         bool isAbstract;
         bool isStatic;
         bool isLeaf;
@@ -104,12 +163,13 @@ struct Interface: public Entity {
 // 不能继承的类（叶子类，封闭类）通过在类名下面增加 leaf 特性说明。
 struct Class: public Interface {
 
-    // 属性在类下面的栏中列出，可以仅显示属性名
+    // <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = {property - string }opt
     // 属性其他特征完整语法: [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
+    // 属性在类下面的栏中列出，可以仅显示属性名
     // 不能重写属性通过在特性串中增加 leaf 特性说明
     // 静态属性通过在属性名下加下划线表示
     struct Attribute : public Parameter {
-        AccessableType accessable;
+        VisibilityType accessable;
         bool isStatic;
         bool isLeaf;
     };
