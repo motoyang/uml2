@@ -135,6 +135,7 @@ struct Subsystem: public Entity {
 
 struct Interface: public Entity {
     struct Parameter {
+        std::string inout;      // in, out, inout
         std::string name;
         std::string type;
         std::string defaultValue;
@@ -146,15 +147,15 @@ struct Interface: public Entity {
     // 操作特征完整语法: [可见性] 操作名 [([方向] 参数名 ':' 参数类型 ['=' 默认值])] [':' 返回类型] [{特征串}]
     // 不能重写的操作与属性一样使用特征串中增加 leaf 表示
     struct Operation {
-        VisibilityType accesable;
-        bool isAbstract;
-        bool isStatic;
-        bool isLeaf;
-        std::string returnType;
+        std::string stereotype;     // <<abstract>>, <<leaf>>, <<static>>
+        VisibilityType visibility;
         std::string name;
         std::list<Parameter> parameters;
+        std::string returnType;
+        std::string property;
     };
 
+    std::string stereotype;     // <<abstract>>, <<leaf>>
     std::list<Operation> operations;
 };
 
@@ -163,19 +164,20 @@ struct Interface: public Entity {
 // 不能继承的类（叶子类，封闭类）通过在类名下面增加 leaf 特性说明。
 struct Class: public Interface {
 
-    // <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = {property - string }opt
+    // <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = default_opt {property - string }opt
     // 属性其他特征完整语法: [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
     // 属性在类下面的栏中列出，可以仅显示属性名
     // 不能重写属性通过在特性串中增加 leaf 特性说明
     // 静态属性通过在属性名下加下划线表示
-    struct Attribute : public Parameter {
-        VisibilityType accessable;
-        bool isStatic;
-        bool isLeaf;
+    struct Attribute {
+        std::string stereotype;     // <<static>>
+        VisibilityType visibility;
+        std::string name;
+        std::string multiplicity;
+        std::string type;
+        std::string defaultValue;
+        std::string property;
     };
-
-    bool isAbstract;
-    bool isLeaf;
 
     std::list<Parameter> templateParameter;
     std::list<Attribute> attributes;
