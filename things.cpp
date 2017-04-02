@@ -4,9 +4,31 @@
 
 namespace uml {
 
+//
+// ISerialize的友元函数
+//
+
+// 重载输出运算符，只能用友元函数
+QDataStream & operator << (QDataStream &dataStream, const ISerialize& s)
+{
+    s.save(dataStream);
+    return dataStream;
+}
+
+// 重载输入运算符，只能用友元函数
+QDataStream & operator >> (QDataStream &dataStream, ISerialize& s)
+{
+    s.load(dataStream);
+    return dataStream;
+}
+
+//
+// VisibilityType
+//
 QString VisibilityType::toString() const
 {
     const QMap<int, QString> m = {
+        {VisibilityType::Type::None, QStringLiteral(" ")},
         {VisibilityType::Type::Package, QStringLiteral("~")},
         {VisibilityType::Type::Public, QStringLiteral("+")},
         {VisibilityType::Type::Protected, QStringLiteral("=")},
@@ -29,6 +51,9 @@ void VisibilityType::load(QDataStream &dataStream)
     t_ = (Type)i;
 }
 
+//
+// Entity
+//
 void Entity::save(QDataStream &dataStream) const
 {
     dataStream << name << comment;
@@ -39,19 +64,9 @@ void Entity::load(QDataStream &dataStream)
     dataStream >> name >> comment;
 }
 
-// 重载输入输出运算符，只能用友元函数
-QDataStream & operator << (QDataStream &dataStream, const ISerialize& s)
-{
-    s.save(dataStream);
-    return dataStream;
-}
-
-QDataStream & operator >> (QDataStream &dataStream, ISerialize& s)
-{
-    s.load(dataStream);
-    return dataStream;
-}
-
+//
+// Parameter
+//
 void Parameter::save(QDataStream &dataStream) const
 {
     dataStream << inout << name << type << defaultValue;
@@ -70,7 +85,9 @@ QString Parameter::toString() const
     return r;
 }
 
-
+//
+// Operation
+//
 void Operation::save(QDataStream &dataStream) const
 {
     dataStream << stereotype << visibility << name << parameters.size();
@@ -103,11 +120,40 @@ QString Operation::toString() const
     }
 
     // [可见性] 操作名 [([方向] 参数名 ':' 参数类型 ['=' 默认值])] [':' 返回类型] [{特征串}]
-    QString r = QStringLiteral("%1%2(%3)%4%5")
+    QString r = QStringLiteral("%1%2%3(%4)%5%6")
             .arg(stereotype.isEmpty()? stereotype: stereotype + " ")
+            .arg(visibility.toString())
             .arg(name)
             .arg(allPara)
             .arg(returnType.isEmpty()? returnType: ": " + returnType)
+            .arg(property.isEmpty()? property: "{" + property + "}");
+
+    return r;
+}
+
+//
+// Attribute
+//
+void Attribute::save(QDataStream &dataStream) const
+{
+    dataStream << stereotype << visibility << name << type << multiplicity << defaultValue << property;
+}
+
+void Attribute::load(QDataStream &dataStream)
+{
+    dataStream >> stereotype >> visibility >> name >> type >> multiplicity >> defaultValue >> property;
+}
+
+QString Attribute::toString() const
+{
+    // [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
+    QString r = QStringLiteral("%1%2%3%4%5%6%7")
+            .arg(stereotype.isEmpty()? stereotype: stereotype + " ")
+            .arg(visibility.toString())
+            .arg(name)
+            .arg(type.isEmpty()? type: ": " + type)
+            .arg(multiplicity.isEmpty()? multiplicity: "[" + multiplicity + "]")
+            .arg(defaultValue.isEmpty()? defaultValue: "=" + defaultValue)
             .arg(property.isEmpty()? property: "{" + property + "}");
 
     return r;

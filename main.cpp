@@ -24,8 +24,25 @@ int main(int argc, char *argv[])
 
     uml::Operation o1("o1");
     cout << o1.toString().toStdString() << endl;
+    o1.stereotype = "<<abstract>>";
+    o1.visibility = uml::VisibilityType::Type::Public;
+    o1.parameters << p << p2 << p3 << p4;
+    cout << o1.toString().toStdString() << endl;
 
-//    c.attributes.push_back();
+    uml::Attribute a1("a1");
+    a1.stereotype = "<<static>>";
+    cout << a1.toString().toStdString() << endl;
+    a1.stereotype.clear();
+    a1.visibility = uml::VisibilityType::Type::Private;
+    a1.type = "t1";
+    cout << a1.toString().toStdString() << endl;
+    a1.multiplicity = "multi1";
+    a1.defaultValue = "d1";
+    a1.property = "property1";
+    cout << a1.toString().toStdString() << endl;
+
+
+    //    c.attributes.push_back();
 
     QString s("QString");
     cout << s.toStdString() << endl;

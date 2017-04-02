@@ -123,6 +123,10 @@ struct VisibilityType: public ISerialize {
 
     Type t_;
 
+    VisibilityType()
+        :t_(Type::None)
+    {}
+
     VisibilityType(Type t)
         : t_(t)
     {}
@@ -140,7 +144,8 @@ struct Entity: public ISerialize {
     QString name;
     QString comment;
 
-    virtual ~Entity() {}
+    virtual ~Entity()
+    {}
 
     // 实现序列化
     virtual void save(QDataStream &dataStream) const override;
@@ -216,15 +221,9 @@ struct Operation: ISerialize {
     Operation(const QString& n)
         : name(n)
     {}
-/*
-    Operation(VisibilityType v, const QString& n)
-        : visibility(v), name(n)
+
+    virtual ~Operation()
     {}
-    Operation(const QString& st, VisibilityType v, const QString &n)
-        : stereotype(st), visibility(v), name(n)
-    {}
-*/
-    virtual ~Operation() {}
 
     // 实现序列化
     virtual void save(QDataStream &dataStream) const override;
@@ -238,26 +237,39 @@ struct Interface: public Entity {
     QList<Operation> operations;
 };
 
+
+// <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = default_opt {property - string }opt
+// 属性其他特征完整语法: [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
+// 属性在类下面的栏中列出，可以仅显示属性名
+// 不能重写属性通过在特性串中增加 leaf 特性说明
+// 静态属性通过在属性名下加下划线表示
+struct Attribute: public ISerialize {
+    QString stereotype;     // <<static>>
+    VisibilityType visibility;
+    QString name;
+    QString type;
+    QString multiplicity;
+    QString defaultValue;
+    QString property;
+
+    Attribute(const QString& n)
+        :name(n)
+    {}
+
+    ~Attribute()
+    {}
+
+    // 实现序列化
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
+
+    QString toString() const;
+};
+
 // 在UML中类以一个矩形表示，类的名称用一个字符串表示
 // 抽象类通过将类名改为斜体字表
 // 不能继承的类（叶子类，封闭类）通过在类名下面增加 leaf 特性说明。
 struct Class: public Interface {
-
-    // <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = default_opt {property - string }opt
-    // 属性其他特征完整语法: [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
-    // 属性在类下面的栏中列出，可以仅显示属性名
-    // 不能重写属性通过在特性串中增加 leaf 特性说明
-    // 静态属性通过在属性名下加下划线表示
-    struct Attribute {
-        QString stereotype;     // <<static>>
-        VisibilityType visibility;
-        QString name;
-        QString multiplicity;
-        QString type;
-        QString defaultValue;
-        QString property;
-    };
-
     QList<Parameter> templateParameter;
     QList<Attribute> attributes;
 };
