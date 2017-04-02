@@ -8,7 +8,8 @@ TARGET = uml2
 TEMPLATE = app
 
 SOURCES += main.cpp \
-    things.cpp
+    things.cpp \
+    things_ut.cpp
 
 HEADERS += \
     things.h

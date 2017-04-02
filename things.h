@@ -110,7 +110,6 @@ struct ISerialize {
     friend QDataStream & operator >> (QDataStream &dataStream, ISerialize& s);
 };
 
-
 // 可见性通过在属性或方法名称前增加特定的符号表示。公共的（+）私有的的（-）受保护的（#）包内的（~）
 struct VisibilityType: public ISerialize {
     enum Type {
@@ -118,7 +117,7 @@ struct VisibilityType: public ISerialize {
         Private = 1,
         Protected = 2,
         Public = 3,
-        Package =4
+        Package = 4
     };
 
     Type t_;
@@ -138,42 +137,6 @@ struct VisibilityType: public ISerialize {
     virtual void load(QDataStream &dataStream) override;
 
     QString toString() const;
-};
-
-struct Entity: public ISerialize {
-    QString name;
-    QString comment;
-
-    virtual ~Entity()
-    {}
-
-    // 实现序列化
-    virtual void save(QDataStream &dataStream) const override;
-    virtual void load(QDataStream &dataStream) override;
-};
-
-struct End: public Entity {
-
-};
-
-struct Line: public Entity {
-    End source;
-    End target;
-};
-
-struct Text: public Entity {
-};
-
-struct Note: public Entity {
-};
-
-struct Actor: public Entity {
-};
-
-struct UseCase: public Entity {
-};
-
-struct Subsystem: public Entity {
 };
 
 struct Parameter: public ISerialize {
@@ -232,12 +195,6 @@ struct Operation: ISerialize {
     QString toString() const;
 };
 
-struct Interface: public Entity {
-    QString stereotype;     // <<abstract>>, <<leaf>>
-    QList<Operation> operations;
-};
-
-
 // <<stereotype>>opt visibility_opt name multiplicity_opt: type_opt = default_opt {property - string }opt
 // 属性其他特征完整语法: [可见性] 属性名 [':'类型] [多重性] ['='初始值] [{特性串]}]
 // 属性在类下面的栏中列出，可以仅显示属性名
@@ -266,12 +223,74 @@ struct Attribute: public ISerialize {
     QString toString() const;
 };
 
+struct Entity: public ISerialize {
+    QString name;
+    QString comment;
+
+    Entity()
+    {}
+
+    Entity(const QString& n)
+        : name(n)
+    {}
+
+    virtual ~Entity()
+    {}
+
+    // 实现序列化
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
+};
+
+struct End: public Entity {
+    Entity* entity = nullptr;
+};
+
+struct Line: public Entity {
+    End source;
+    End target;
+};
+
+struct Text: public Entity {
+};
+
+struct Note: public Entity {
+};
+
+struct Actor: public Entity {
+};
+
+struct UseCase: public Entity {
+};
+
+struct Subsystem: public Entity {
+};
+
+struct Interface: public Entity {
+    QString stereotype;     // <<abstract>>, <<leaf>>
+    QList<Operation> operations;
+
+    Interface(const QString& n)
+        : Entity(n)
+    {}
+
+    virtual ~Interface()
+    {}
+};
+
 // 在UML中类以一个矩形表示，类的名称用一个字符串表示
 // 抽象类通过将类名改为斜体字表
 // 不能继承的类（叶子类，封闭类）通过在类名下面增加 leaf 特性说明。
 struct Class: public Interface {
-    QList<Parameter> templateParameter;
+    QList<Parameter> templateParameters;
     QList<Attribute> attributes;
+
+    Class(const QString& n)
+        : Interface(n)
+    {}
+
+    virtual ~Class()
+    {}
 };
 
 struct Package: public Entity {

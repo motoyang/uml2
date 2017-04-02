@@ -8,7 +8,7 @@
 
 using namespace std;
 using namespace uml;
-
+/*
 int main(int argc, char *argv[])
 {
     UNUSED_PARAM(argc);
@@ -52,3 +52,8 @@ int main(int argc, char *argv[])
     cout << "Hello World!" << endl;
     return 0;
 }
+*/
+
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest/doctest.h"
+
