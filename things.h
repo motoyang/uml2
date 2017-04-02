@@ -1,7 +1,11 @@
 #ifndef THINGS_H
 #define THINGS_H
 
+#include <QString>
+#include <QList>
+
 namespace uml {
+
 
 /*
 UML结构，也就是总览
@@ -61,15 +65,6 @@ UmlStructure
 
 */
 
-// 可见性通过在属性或方法名称前增加特定的符号表示。公共的（+）私有的的（-）受保护的（#）包内的（~）
-
-enum class VisibilityType {
-    Private = 0,
-    Protected = 1,
-    Public = 2,
-    Package
-};
-
 enum class EndType {
     None = 0,
     Component,
@@ -104,9 +99,52 @@ enum class LineType {
     Refined,
 };
 
-struct Entity {
-    std::string name;
-    std::string comment;
+// 负责数据的存储与载入
+struct ISerialize {
+    virtual ~ISerialize() {};
+    virtual void save(QDataStream &dataStream) const = 0;
+    virtual void load(QDataStream &dataStream) = 0;
+
+    // 重载输入输出运算符，只能用友元函数
+    friend QDataStream & operator << (QDataStream &dataStream, const ISerialize& s);
+    friend QDataStream & operator >> (QDataStream &dataStream, ISerialize& s);
+};
+
+
+// 可见性通过在属性或方法名称前增加特定的符号表示。公共的（+）私有的的（-）受保护的（#）包内的（~）
+struct VisibilityType: public ISerialize {
+    enum Type {
+        None = 0,
+        Private = 1,
+        Protected = 2,
+        Public = 3,
+        Package =4
+    };
+
+    Type t_;
+
+    VisibilityType(Type t)
+        : t_(t)
+    {}
+
+    virtual ~VisibilityType()
+    {}
+
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
+
+    QString toString() const;
+};
+
+struct Entity: public ISerialize {
+    QString name;
+    QString comment;
+
+    virtual ~Entity() {}
+
+    // 实现序列化
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
 };
 
 struct End: public Entity {
@@ -133,30 +171,71 @@ struct UseCase: public Entity {
 struct Subsystem: public Entity {
 };
 
+struct Parameter: public ISerialize {
+    QString s;
+    QString inout;      // in, out, inout
+    QString name;
+    QString type;
+    QString defaultValue;
+
+    Parameter(const QString& n)
+        : name(n)
+    {}
+    Parameter(const QString& n, const QString& t)
+        : name(n), type(t)
+    {}
+    Parameter(const QString& n, const QString& t, const QString d)
+        : name(n), type(t), defaultValue(d)
+    {}
+    Parameter(const QString& io, const QString& n, const QString& t, const QString& d)
+        : inout(io), name(n), type(t), defaultValue(d)
+    {}
+
+    virtual ~Parameter() {}
+
+    // 实现序列化
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
+
+    QString toString() const;
+};
+
+// 属性在类下面的第二栏中列出，可以仅显示操作名
+// 静态操作与静态属性同样通过在名称下加下划线表示
+// 抽象操作与抽象类同样通过斜体字表示
+// 操作特征完整语法: [可见性] 操作名 [([方向] 参数名 ':' 参数类型 ['=' 默认值])] [':' 返回类型] [{特征串}]
+// 不能重写的操作与属性一样使用特征串中增加 leaf 表示
+struct Operation: ISerialize {
+    QString stereotype;     // <<abstract>>, <<leaf>>, <<static>>
+    VisibilityType visibility = VisibilityType::None;
+    QString name;
+    QList<Parameter> parameters;
+    QString returnType;
+    QString property;
+
+    Operation(const QString& n)
+        : name(n)
+    {}
+/*
+    Operation(VisibilityType v, const QString& n)
+        : visibility(v), name(n)
+    {}
+    Operation(const QString& st, VisibilityType v, const QString &n)
+        : stereotype(st), visibility(v), name(n)
+    {}
+*/
+    virtual ~Operation() {}
+
+    // 实现序列化
+    virtual void save(QDataStream &dataStream) const override;
+    virtual void load(QDataStream &dataStream) override;
+
+    QString toString() const;
+};
+
 struct Interface: public Entity {
-    struct Parameter {
-        std::string inout;      // in, out, inout
-        std::string name;
-        std::string type;
-        std::string defaultValue;
-    };
-
-    // 属性在类下面的第二栏中列出，可以仅显示操作名
-    // 静态操作与静态属性同样通过在名称下加下划线表示
-    // 抽象操作与抽象类同样通过斜体字表示
-    // 操作特征完整语法: [可见性] 操作名 [([方向] 参数名 ':' 参数类型 ['=' 默认值])] [':' 返回类型] [{特征串}]
-    // 不能重写的操作与属性一样使用特征串中增加 leaf 表示
-    struct Operation {
-        std::string stereotype;     // <<abstract>>, <<leaf>>, <<static>>
-        VisibilityType visibility;
-        std::string name;
-        std::list<Parameter> parameters;
-        std::string returnType;
-        std::string property;
-    };
-
-    std::string stereotype;     // <<abstract>>, <<leaf>>
-    std::list<Operation> operations;
+    QString stereotype;     // <<abstract>>, <<leaf>>
+    QList<Operation> operations;
 };
 
 // 在UML中类以一个矩形表示，类的名称用一个字符串表示
@@ -170,17 +249,17 @@ struct Class: public Interface {
     // 不能重写属性通过在特性串中增加 leaf 特性说明
     // 静态属性通过在属性名下加下划线表示
     struct Attribute {
-        std::string stereotype;     // <<static>>
+        QString stereotype;     // <<static>>
         VisibilityType visibility;
-        std::string name;
-        std::string multiplicity;
-        std::string type;
-        std::string defaultValue;
-        std::string property;
+        QString name;
+        QString multiplicity;
+        QString type;
+        QString defaultValue;
+        QString property;
     };
 
-    std::list<Parameter> templateParameter;
-    std::list<Attribute> attributes;
+    QList<Parameter> templateParameter;
+    QList<Attribute> attributes;
 };
 
 struct Package: public Entity {
