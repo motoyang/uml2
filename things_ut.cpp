@@ -111,3 +111,32 @@ TEST_CASE("lots of nested subcases") {
     }
 */
 }
+
+
+TEST_CASE("lots of nested subcases2") {
+    cout << endl << "root2" << endl;
+    SUBCASE("") {
+        cout << "1" << endl;
+        SUBCASE("") {
+            cout << "1.1" << endl;
+            test_out_1();
+        }
+    }
+/*
+    SUBCASE("") {
+        cout << "2" << endl;
+        SUBCASE("") { cout << "2.1" << endl; }
+        SUBCASE("") {
+            cout << "2.2" << endl;
+            SUBCASE("") {
+                cout << "2.2.1" << endl;
+                SUBCASE("") { cout << "2.2.1.1" << endl; }
+                SUBCASE("") { cout << "2.2.1.2" << endl; }
+            }
+        }
+        SUBCASE("") { cout << "2.3" << endl; }
+        SUBCASE("") { cout << "2.4" << endl; }
+    }
+*/
+}
+
